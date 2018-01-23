@@ -154,11 +154,13 @@ double image_strwidth(const char *str, pGEcontext gc, pDevDesc dd) {
   return fm.width;
   return(0);
   VOID_END_RCPP
-    return(0);
+  return(0);
+
 }
 
 void image_metric_info(int c, pGEcontext gc, double* ascent, double* descent,
                        double* width, pDevDesc dd) {
+
   Rcout << "// image_metric_info()" << std::endl;
   BEGIN_RCPP
   GraffleDevice *gd = (GraffleDevice *)dd->deviceSpecific;
@@ -187,35 +189,41 @@ void image_metric_info(int c, pGEcontext gc, double* ascent, double* descent,
   *descent = fm.descent;
   *width = fm.width;
   VOID_END_RCPP
+
 }
 
 static void image_close(pDevDesc dd) {
   Rcout << "// image_close()" << std::endl;
   BEGIN_RCPP
-    VOID_END_RCPP
+  VOID_END_RCPP
 }
 
 static void image_clip(double left, double right, double bottom, double top, pDevDesc dd) {
   Rcout << "// image_clip()" << std::endl;
   BEGIN_RCPP
-    VOID_END_RCPP
+  VOID_END_RCPP
 }
 
 static void image_size(double *left, double *right, double *bottom, double *top, pDevDesc dd) {
+
   Rcout << "// image_size()" << std::endl;
   *left = dd->left;
   *right = dd->right;
   *bottom = dd->bottom;
   *top = dd->top;
+
 }
 
 static void image_new_page(const pGEcontext gc, pDevDesc dd) {
+
   Rcout << "// image_new_page()" << std::endl;
   BEGIN_RCPP
-    VOID_END_RCPP
+  VOID_END_RCPP
+
 }
 
 static void image_line(double x1, double y1, double x2, double y2, const pGEcontext gc, pDevDesc dd) {
+
   Rcout << "// image_line()" << std::endl;
   BEGIN_RCPP
   double multiplier = 1/dd->ipr[0]/72;
@@ -233,9 +241,11 @@ static void image_line(double x1, double y1, double x2, double y2, const pGEcont
                           R_ALPHA(gc->col)/255.0);
   Rcout << new_line << std::endl;
   VOID_END_RCPP
+
 }
 
 static void image_polyline(int n, double *x, double *y, const pGEcontext gc, pDevDesc dd) {
+
   Rcout << "// image_polyline()" << std::endl;
   BEGIN_RCPP
   double multiplier = 1/dd->ipr[0]/72;
@@ -255,9 +265,11 @@ static void image_polyline(int n, double *x, double *y, const pGEcontext gc, pDe
                           R_ALPHA(gc->col)/255.0);
   Rcout << new_line << std::endl;
   VOID_END_RCPP
+
 }
 
 static void image_polygon(int n, double *x, double *y, const pGEcontext gc, pDevDesc dd) {
+
   Rcout << "// image_polygon()" << std::endl;
   BEGIN_RCPP
   double multiplier = 1/dd->ipr[0]/72;
@@ -307,7 +319,7 @@ void image_text(double x, double y, const char *str, double rot, double hadj,
                 pGEcontext gc, pDevDesc dd) {
   Rcout << "// image_text()" << std::endl;
   BEGIN_RCPP
-    double multiplier = 1/dd->ipr[0]/72;
+  double multiplier = 1/dd->ipr[0]/72;
   double deg = fmod(-rot + 360.0, 360.0);
   double ps = gc->ps * gc->cex * multiplier;
 
@@ -319,9 +331,12 @@ void image_text(double x, double y, const char *str, double rot, double hadj,
   new_text = new_text + "t1.textSize = " + d2s(ps) + ";\n";
   new_text = new_text + "t1.fontName = \"" + fontname(gc) + "\";\n";
   new_text = new_text + "t1.textRotation = " + d2s(rot) + ";\n";
-  new_text += tfm::format("t1.textColor = Color.RGB(%f, %f, %f, %f);",
+  new_text += tfm::format("t1.textColor = Color.RGB(%f, %f, %f, %f);\n",
                           R_RED(gc->col)/255.0, R_GREEN(gc->col)/255.0, R_BLUE(gc->col)/255.0,
                           R_ALPHA(gc->col)/255.0);
+  new_text += tfm::format("t1.fillColor = Color.RGB(%f, %f, %f, %f);\n",
+                          R_RED(gc->fill)/255.0, R_GREEN(gc->fill)/255.0, R_BLUE(gc->fill)/255.0,
+                          R_ALPHA(gc->fill)/255.0);
   Rcout << new_text << std::endl;
   VOID_END_RCPP
 }
@@ -334,7 +349,7 @@ static void image_rect(double x0, double y0, double x1, double y1,
   new_rect += "r1.shape = \"Rectangle\";\n";
   new_rect += "r1.shadowColor = null;\n";
   new_rect += tfm::format("r1.geometry = new Rect(%f, %f, %f, %f);\n",
-                          d2s(x0), d2s(y0), d2s(x1-x0), d2s(y1-y0));
+                          d2s(x0), d2s(y0), d2s(x1-x0), d2s(y0-y1));
   new_rect += tfm::format("r1.strokeColor = Color.RGB(%f, %f, %f, %f);\n",
                           R_RED(gc->col)/255.0, R_GREEN(gc->col)/255.0, R_BLUE(gc->col)/255.0,
                           R_ALPHA(gc->col)/255.0);
@@ -347,15 +362,15 @@ static void image_rect(double x0, double y0, double x1, double y1,
 
 static void image_circle(double x, double y, double r, const pGEcontext gc, pDevDesc dd) {
 
-    Rcout << "// image_circle()" << std::endl;
+  Rcout << "// image_circle()" << std::endl;
   BEGIN_RCPP
-    //note: parameter 3 + 4 must denote any point on the circle
-    std::string new_circle = "c1 = cnvs.newShape();\n";
+  //note: parameter 3 + 4 must denote any point on the circle
+  std::string new_circle = "c1 = cnvs.newShape();\n";
   new_circle += "c1.shape = \"Circle\";\n";
   new_circle += "c1.shadowColor = null;\n";
   new_circle += tfm::format("c1.geometry = new Rect(%f, %f, %f, %f);\n",
                             d2s(x-r), d2s(y-r), d2s(2*r), d2s(2*r));
-  new_circle += tfm::format("c1.color = Color.RGB(%f, %f, %f, %f);\n",
+  new_circle += tfm::format("c1.strokeColor = Color.RGB(%f, %f, %f, %f);\n",
                             R_RED(gc->col)/255.0, R_GREEN(gc->col)/255.0, R_BLUE(gc->col)/255.0,
                             R_ALPHA(gc->col)/255.0);
   new_circle += tfm::format("c1.fillColor = Color.RGB(%f, %f, %f, %f);\n",
@@ -369,7 +384,7 @@ static void image_path(double *x, double *y, int npoly, int *nper, Rboolean wind
                        const pGEcontext gc, pDevDesc dd) {
   Rcout << "// image_path()" << std::endl;
   BEGIN_RCPP
-    VOID_END_RCPP
+  VOID_END_RCPP
 }
 
 void image_mode(int mode, pDevDesc dd) {
@@ -379,9 +394,9 @@ void image_mode(int mode, pDevDesc dd) {
 SEXP image_capture(pDevDesc dd){
   Rcout << "// image_capture()" << std::endl;
   BEGIN_RCPP
-    return R_NilValue;
+  return R_NilValue;
   VOID_END_RCPP
-    return R_NilValue;
+  return R_NilValue;
 }
 
 
@@ -391,9 +406,11 @@ static void image_raster(unsigned int *raster, int w, int h,
                          double rot,
                          Rboolean interpolate,
                          const pGEcontext gc, pDevDesc dd) {
+
   Rcout << "// image_raster()" << std::endl;
   BEGIN_RCPP
-    VOID_END_RCPP
+  VOID_END_RCPP
+
 }
 
 static pDevDesc graffle_driver_new(GraffleDevice *device, int bg, int width, int height,
