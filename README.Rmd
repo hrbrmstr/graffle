@@ -1,0 +1,32 @@
+---
+output: rmarkdown::github_document
+---
+
+# graffle
+
+## Description
+
+## What's Inside The Tin
+
+The following functions are implemented:
+
+## Installation
+
+```{r eval=FALSE}
+devtools::install_github("hrbrmstr/graffle")
+```
+
+```{r message=FALSE, warning=FALSE, error=FALSE, include=FALSE}
+options(width=120)
+```
+
+## Usage
+
+```{r message=FALSE, warning=FALSE, error=FALSE}
+library(graffle)
+
+# current verison
+packageVersion("graffle")
+
+```
+
