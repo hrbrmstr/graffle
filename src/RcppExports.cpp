@@ -6,8 +6,8 @@
 using namespace Rcpp;
 
 // graffle_device_internal
-std::string graffle_device_internal(std::string bg, int width, int height, double pointsize, int res, bool clip, bool antialias, bool drawing);
-RcppExport SEXP _graffle_graffle_device_internal(SEXP bgSEXP, SEXP widthSEXP, SEXP heightSEXP, SEXP pointsizeSEXP, SEXP resSEXP, SEXP clipSEXP, SEXP antialiasSEXP, SEXP drawingSEXP) {
+std::string graffle_device_internal(std::string bg, int width, int height, double pointsize, int res, bool clip, bool antialias, bool drawing, Rcpp::List aliases);
+RcppExport SEXP _graffle_graffle_device_internal(SEXP bgSEXP, SEXP widthSEXP, SEXP heightSEXP, SEXP pointsizeSEXP, SEXP resSEXP, SEXP clipSEXP, SEXP antialiasSEXP, SEXP drawingSEXP, SEXP aliasesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -19,13 +19,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type clip(clipSEXP);
     Rcpp::traits::input_parameter< bool >::type antialias(antialiasSEXP);
     Rcpp::traits::input_parameter< bool >::type drawing(drawingSEXP);
-    rcpp_result_gen = Rcpp::wrap(graffle_device_internal(bg, width, height, pointsize, res, clip, antialias, drawing));
+    Rcpp::traits::input_parameter< Rcpp::List >::type aliases(aliasesSEXP);
+    rcpp_result_gen = Rcpp::wrap(graffle_device_internal(bg, width, height, pointsize, res, clip, antialias, drawing, aliases));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_graffle_graffle_device_internal", (DL_FUNC) &_graffle_graffle_device_internal, 8},
+    {"_graffle_graffle_device_internal", (DL_FUNC) &_graffle_graffle_device_internal, 9},
     {NULL, NULL, 0}
 };
 

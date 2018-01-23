@@ -11,7 +11,6 @@ capture.output({
 cat(x, file="~/Desktop/a.js", sep="\n")
 
 
-
 capture.output({
   to_graffle()
   plot(x <- sort(rnorm(47)), type = "s", main = "plot(x, type = \"s\")")
@@ -24,13 +23,14 @@ cat(x, file="~/Desktop/a.js", sep="\n")
 capture.output({
   to_graffle()
   ggplot(mtcars, aes(wt, mpg)) +
-    geom_point() +
+    geom_point(aes(color=factor(cyl)), size=3) +
     geom_smooth() +
     labs(
       title="The Seminal ggplot2 example",
       subtitle="A useful subtitle",
       caption="For Omnigraffle"
     ) +
+    scale_color_ipsum() +
     theme_ipsum_rc(grid="XY") -> gg
   print(gg)
   invisible(dev.off())

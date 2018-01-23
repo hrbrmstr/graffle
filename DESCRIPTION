@@ -19,7 +19,8 @@ Suggests:
 Depends:
     R (>= 3.2.0)
 Imports:
-    BH,
-    Rcpp
+    Rcpp,
+    gdtools (>= 0.1.6),
+    BH
 RoxygenNote: 6.0.1.9000
-LinkingTo: Rcpp
+LinkingTo: Rcpp, gdtools, BH
