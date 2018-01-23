@@ -1,6 +1,6 @@
 #' @export
 to_graffle <- function(width = 800, height = 600, bg = "white", pointsize = 12,
-                       res = 72, clip = TRUE, antialias = TRUE,
+                       res = 72, clip = FALSE, antialias = FALSE,
                        system_fonts = list(), user_fonts = list()) {
 
   aliases <- validate_aliases(system_fonts, user_fonts)

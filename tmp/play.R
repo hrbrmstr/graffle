@@ -1,6 +1,11 @@
+library(ggalt)
 library(graffle)
 library(ggplot2)
 library(hrbrthemes)
+library(cdcfluview)
+library(tidyverse)
+
+ili <- ilinet("national", years = 2015:2018)
 
 capture.output({
   to_graffle()
@@ -31,7 +36,7 @@ capture.output({
   to_graffle()
   ggplot(mtcars, aes(wt, mpg)) +
     geom_point(aes(color=factor(cyl)), size=3) +
-    geom_smooth() +
+    geom_smooth(alpha=1/10) +
     labs(
       title="The Seminal ggplot2 example",
       subtitle="A useful subtitle",
@@ -43,6 +48,20 @@ capture.output({
   invisible(dev.off())
 }) -> x
 cat(x, file="~/Desktop/a.js", sep="\n")
+
+d <- map_data("state")
+capture.output({
+  to_graffle()
+  ggplot(d, aes(long, lat)) +
+    geom_map(map = d, aes(map_id=region, fill=order), color="#b2b2b2", size=0.25) +
+    coord_map("polyconic") +
+    ggthemes::theme_map() +
+    theme(legend.position="none") -> gg
+  print(gg)
+  invisible(dev.off())
+}) -> dbg
+cat(x, file="~/Desktop/a.js", sep="\n")
+
 
 
 capture.output({
@@ -71,3 +90,32 @@ capture.output({
 }) -> x
 cat(x, file="~/Desktop/a.js", sep="\n")
 
+
+update_geom_font_defaults(font_rc)
+theme_set(theme_ipsum_rc(grid="XY", strip_text_face = "bold"))
+capture.output({
+    to_graffle(width=1000, 500)
+
+  select(ili, week_start, starts_with("age")) %>%
+    select(-age_25_64) %>%
+    gather(group, ct, -week_start) %>%
+    mutate(group = factor(group, levels=c("age_0_4", "age_5_24", "age_25_49", "age_50_64", "age_65"),
+                          labels=c("Ages 0-4", "Ages 5-24", "Ages 25-49", "Ages 50-64", "Age 65+"))) %>%
+    ggplot(aes(week_start, ct, group=group)) +
+    stat_xspline(geom="area", aes(color=group, fill=group), size=2/5, alpha=2/3) +
+    scale_x_date(expand=c(0,0), date_labels="%b\n`%y") +
+    scale_y_comma() +
+    scale_color_ipsum() +
+    scale_fill_ipsum() +
+    labs(x=NULL, y="(weekly)\n# Patients Reported",
+         title="Weekly reported Influenza-Like Illness (ILI) — U.S./National by Age Group",
+         subtitle="All age groups except 5-24 are reporting larger number of cases this season than the previous four seasons",
+         caption="Flu Seasons 2013-14 / 2014-15 / 2015-16 / 2016-17 / 2017-18\nSource: CDC/#rstats cdcfluview"
+    ) +
+    facet_wrap(~group, scales="free_x", nrow=1) +
+    theme(axis.text.x=element_text(size=9)) +
+    theme(legend.position="none") -> gg
+  print(gg)
+  invisible(dev.off())
+}) -> x
+cat(x, file="~/Desktop/a.js", sep="\n")

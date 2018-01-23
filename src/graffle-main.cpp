@@ -43,7 +43,7 @@ std::string urlencode(const std::string &s) {
   return(escaped);
 }
 
-void omnijs(std::string cmd="", double n=0.01) {
+void omnijs(std::string cmd="", double n=0.10) {
   Rcpp::Environment base("package:utils");
   Rcpp::Function browseURL = base["browseURL"];
   cmd = tfm::format("omnigraffle:///omnijs-run?script=%s", urlencode(cmd));
@@ -60,19 +60,21 @@ public:
   Rcpp::List system_aliases;
   Rcpp::List user_aliases;
   XPtrCairoContext cc;
+  double clipleft, clipright, cliptop, clipbottom;
 
   GraffleDevice(int height, int width, Rcpp::List aliases_):
     system_aliases(Rcpp::wrap(aliases_["system"])),
     user_aliases(Rcpp::wrap(aliases_["user"])),
-    cc(gdtools::context_create()) {
+    cc(gdtools::context_create()),
+    clipleft(0), clipright(0), cliptop(0), clipbottom(0) {
 
     omnijs("app.activate();\n", 5);
 
     std::string document = tfm::format("Document.makeNewAndShow(function(doc) { \
-	    cnvs = doc.windows[0].selection.canvas; \
-	    cnvs.canvasSizingMode = CanvasSizingMode.Fixed; \
-	    cnvs.size = new Size(%d, %d); \
-	    cnvs.name = 'Rplot01'; \
+	    cnvs = doc.windows[0].selection.canvas;                                    \
+	    cnvs.canvasSizingMode = CanvasSizingMode.Fixed;                            \
+	    cnvs.size = new Size(%d, %d);                                              \
+	    cnvs.name = 'Rplot01';                                                     \
     });\n", i2s(height), i2s(width));
     // std::string document = "Document.makeNewAndShow(function(doc) { \n";
     // document += "  cnvs = doc.windows[0].selection.canvas;\n";
@@ -190,17 +192,16 @@ double image_strwidth(const char *str, pGEcontext gc, pDevDesc dd) {
 
   Rcout << "// image_strwidth()" << std::endl;
   BEGIN_RCPP
-  GraffleDevice *gd = (GraffleDevice *)dd->deviceSpecific;
+    GraffleDevice *gd = (GraffleDevice *)dd->deviceSpecific;
 
   std::string file = fontfile(gc->fontfamily, gc->fontface, gd->user_aliases);
   std::string name = fontname(gc->fontfamily, gc->fontface, gd->system_aliases, gd->user_aliases);
   gdtools::context_set_font(gd->cc, name, gc->cex * gc->ps, is_bold(gc->fontface), is_italic(gc->fontface), file);
   FontMetric fm = gdtools::context_extents(gd->cc, std::string(str));
 
-  return fm.width;
-  return(0);
+  return(fm.width);
   VOID_END_RCPP
-  return(0);
+    return(0);
 
 }
 
@@ -209,7 +210,7 @@ void image_metric_info(int c, pGEcontext gc, double* ascent, double* descent,
 
   Rcout << "// image_metric_info()" << std::endl;
   BEGIN_RCPP
-  GraffleDevice *gd = (GraffleDevice *)dd->deviceSpecific;
+    GraffleDevice *gd = (GraffleDevice *)dd->deviceSpecific;
 
   bool is_unicode = mbcslocale;
   if (c < 0) {
@@ -238,16 +239,10 @@ void image_metric_info(int c, pGEcontext gc, double* ascent, double* descent,
 
 }
 
-static void image_close(pDevDesc dd) {
-  Rcout << "// image_close()" << std::endl;
-  BEGIN_RCPP
-  VOID_END_RCPP
-}
-
 static void image_clip(double left, double right, double bottom, double top, pDevDesc dd) {
-  Rcout << "// image_clip()" << std::endl;
+  Rcout << "// image_clip() / " << left << ", " << right << ", " << bottom << ", " << top << std::endl;
   BEGIN_RCPP
-  VOID_END_RCPP
+    VOID_END_RCPP
 }
 
 static void image_size(double *left, double *right, double *bottom, double *top, pDevDesc dd) {
@@ -264,7 +259,7 @@ static void image_new_page(const pGEcontext gc, pDevDesc dd) {
 
   Rcout << "// image_new_page()" << std::endl;
   BEGIN_RCPP
-  VOID_END_RCPP
+    VOID_END_RCPP
 
 }
 
@@ -272,7 +267,7 @@ static void image_line(double x1, double y1, double x2, double y2, const pGEcont
 
   Rcout << "// image_line()" << std::endl;
   BEGIN_RCPP
-  double multiplier = 1/dd->ipr[0]/72;
+    double multiplier = 1/dd->ipr[0]/72;
   double lwd = gc->lwd * xlwd * multiplier;
   GraffleDevice *gd = (GraffleDevice *)dd->deviceSpecific;
   std::string new_line = tfm::format(
@@ -283,8 +278,8 @@ static void image_line(double x1, double y1, double x2, double y2, const pGEcont
   new_line = new_line + "l1.shadowColor = null;\n";
   new_line = new_line + tfm::format("l1.strokeThickness = %f;\n", lwd);
   new_line += tfm::format("l1.strokeColor = Color.RGB(%f, %f, %f, %f);",
-                          R_RED(gc->col)/255.0, R_GREEN(gc->col)/255.0, R_BLUE(gc->col)/255.0,
-                          R_ALPHA(gc->col)/255.0);
+                          R_RED(gc->col)/255.0, R_GREEN(gc->col)/255.0,
+                          R_BLUE(gc->col)/255.0, R_ALPHA(gc->col)/255.0);
   Rcout << new_line << std::endl;
   omnijs(new_line);
   VOID_END_RCPP
@@ -295,7 +290,7 @@ static void image_polyline(int n, double *x, double *y, const pGEcontext gc, pDe
 
   Rcout << "// image_polyline()" << std::endl;
   BEGIN_RCPP
-  double multiplier = 1/dd->ipr[0]/72;
+    double multiplier = 1/dd->ipr[0]/72;
   double lwd = gc->lwd * xlwd * multiplier;
 
   std::string new_line = "cnvs = document.windows[0].selection.canvas;\nl1 = cnvs.newLine();\n";
@@ -308,8 +303,8 @@ static void image_polyline(int n, double *x, double *y, const pGEcontext gc, pDe
   new_line = new_line + tfm::format("l1.strokeThickness = %f;\n", lwd);
   new_line = new_line + "l1.shadowColor = null;\n";
   new_line += tfm::format("l1.strokeColor = Color.RGB(%f, %f, %f, %f);",
-                          R_RED(gc->col)/255.0, R_GREEN(gc->col)/255.0, R_BLUE(gc->col)/255.0,
-                          R_ALPHA(gc->col)/255.0);
+                          R_RED(gc->col)/255.0, R_GREEN(gc->col)/255.0,
+                          R_BLUE(gc->col)/255.0, R_ALPHA(gc->col)/255.0);
   Rcout << new_line << std::endl;
   omnijs(new_line);
   VOID_END_RCPP
@@ -320,10 +315,12 @@ static void image_polygon(int n, double *x, double *y, const pGEcontext gc, pDev
 
   Rcout << "// image_polygon()" << std::endl;
   BEGIN_RCPP
-  double multiplier = 1/dd->ipr[0]/72;
+    double multiplier = 1/dd->ipr[0]/72;
   double lwd = gc->lwd * xlwd * multiplier;
 
-  std::string new_gon = "cnvs = document.windows[0].selection.canvas;\ng1 = cnvs.newShape();\n";
+  std::string new_gon = "cnvs = document.windows[0].selection.canvas;\n";
+  new_gon += "g1 = cnvs.newShape();\n";
+
   double minx = x[0], maxx = x[0];
   double miny = y[0], maxy = y[0];
 
@@ -344,12 +341,14 @@ static void image_polygon(int n, double *x, double *y, const pGEcontext gc, pDev
   }
   new_gon = new_gon + "\n];\n";
   new_gon = new_gon + "g1.fillType = null;\n";
+  new_gon += "g1.shadowColor = null;\n";
+  new_gon += tfm::format("g1.strokeThickness = %f;\n", lwd);
   new_gon += tfm::format("g1.strokeColor = Color.RGB(%f, %f, %f, %f);\n",
-                          R_RED(gc->col)/255.0, R_GREEN(gc->col)/255.0, R_BLUE(gc->col)/255.0,
-                          R_ALPHA(gc->col)/255.0);
+                         R_RED(gc->col)/255.0, R_GREEN(gc->col)/255.0,
+                         R_BLUE(gc->col)/255.0, R_ALPHA(gc->col)/255.0);
   new_gon += tfm::format("g1.fillColor = Color.RGB(%f, %f, %f, %f);\n",
-                          R_RED(gc->fill)/255.0, R_GREEN(gc->fill)/255.0, R_BLUE(gc->fill)/255.0,
-                          R_ALPHA(gc->fill)/255.0);
+                         R_RED(gc->fill)/255.0, R_GREEN(gc->fill)/255.0,
+                         R_BLUE(gc->fill)/255.0, R_ALPHA(gc->fill)/255.0);
 
   Rcout << new_gon << std::endl;
   omnijs(new_gon);
@@ -359,33 +358,52 @@ static void image_polygon(int n, double *x, double *y, const pGEcontext gc, pDev
 static inline std::string fontname(const pGEcontext gc){
   // Symbols from text(font = 5) are a special case.
   // Windows: "Standard Symbols L" does NOT work with IM. Just use "Symbol".
-  if(is_symbol(gc->fontface))
+  if (is_symbol(gc->fontface))
     return std::string("Symbol");
   return normalize_font(gc->fontfamily);
 }
 
 void image_text(double x, double y, const char *str, double rot, double hadj,
                 pGEcontext gc, pDevDesc dd) {
-  Rcout << "// image_text()" << std::endl;
+  Rcout << "// image_text() / " << x << ", " << y << ", " << image_strwidth(str, gc, dd) << std::endl;
   BEGIN_RCPP
-  double multiplier = 1/dd->ipr[0]/72;
+    double multiplier = 1/dd->ipr[0]/72;
   double deg = fmod(-rot + 360.0, 360.0);
   double ps = gc->ps * gc->cex * multiplier;
 
   GraffleDevice *gd = (GraffleDevice *)dd->deviceSpecific;
   std::string new_text = "cnvs = document.windows[0].selection.canvas;\nt1 = ";
-  new_text = new_text + "cnvs.addText(\"" + std::string(str) + "\", " +
-    "new Point(" + d2s(x) + "," + d2s(y) + ")" + ");\n";
-  new_text = new_text + "t1.shadowColor = null;\n";
-  new_text = new_text + "t1.textSize = " + d2s(ps) + ";\n";
-  new_text = new_text + "t1.fontName = \"" + fontname(gc) + "\";\n";
-  new_text = new_text + "t1.textRotation = " + d2s(rot) + ";\n";
-  new_text += tfm::format("t1.textColor = Color.RGB(%f, %f, %f, %f);\n",
-                          R_RED(gc->col)/255.0, R_GREEN(gc->col)/255.0, R_BLUE(gc->col)/255.0,
-                          R_ALPHA(gc->col)/255.0);
-  new_text += tfm::format("t1.fillColor = Color.RGB(%f, %f, %f, %f);\n",
-                          R_RED(gc->fill)/255.0, R_GREEN(gc->fill)/255.0, R_BLUE(gc->fill)/255.0,
-                          R_ALPHA(gc->fill)/255.0);
+  new_text += tfm::format("cnvs.addText(\"%s\", new Point(%f, %f));\n", // TODO handle quoting
+    std::string(str), d2s(x), d2s(y));
+  new_text += "t1.shadowColor = null;\n";
+  new_text += "t1.strokeType = null;\n";
+  new_text += "t1.strokeColor = null;\n";
+  new_text += "t1.fillType = null;\n";
+  new_text += "t1.autosizing = TextAutosizing.Vertical;\n";
+  new_text += "t1.textSize = " + d2s(ps) + ";\n";
+
+  Rcout << "// hadj == " << hadj << std::endl;
+  if (hadj == 0) new_text += "t1.textHorizontalAlignment = HorizontalTextAlignment.Left;\n";
+  if (hadj == 0.5) new_text += "t1.textHorizontalAlignment = HorizontalTextAlignment.Center;\n";
+  if (hadj == 1) new_text += "t1.textHorizontalAlignment = HorizontalTextAlignment.Right;\n";
+
+  new_text += tfm::format("t1.fontName = \"%s\";\n", fontname(gc));
+  new_text += tfm::format("t1.textRotation = %f;\n", d2s(-1.0 * rot));
+  new_text += tfm::format(
+    "t1.textColor = Color.RGB(%f, %f, %f, %f);\n",
+    R_RED(gc->col)/255.0, R_GREEN(gc->col)/255.0,
+    R_BLUE(gc->col)/255.0, R_ALPHA(gc->col)/255.0
+  );
+  new_text += tfm::format("t1.fillColor = null;\n");
+  if (hadj == 0) {
+    new_text += "aRect = t1.geometry;\n";
+    new_text += tfm::format("aRect.origin = new Point(%f, %f);\n", d2s(x), d2s(y));
+    new_text += "t1.geometry = aRect;\n";
+  } else if (hadj == 1) {
+    new_text += "aRect = t1.geometry;\n";
+    new_text += tfm::format("aRect.origin = new Point(%f, %f);\n", d2s(x), d2s(y));
+    new_text += "t1.geometry = aRect;\n";
+  }
   Rcout << new_text << std::endl;
   omnijs(new_text);
   VOID_END_RCPP
@@ -395,7 +413,7 @@ static void image_rect(double x0, double y0, double x1, double y1,
                        const pGEcontext gc, pDevDesc dd) {
   Rcout << "// image_rect()" << std::endl;
   BEGIN_RCPP
-  std::string new_rect = "r1 = cnvs.newShape();\n";
+    std::string new_rect = "r1 = cnvs.newShape();\n";
   new_rect += "r1.shape = \"Rectangle\";\n";
   new_rect += "r1.shadowColor = null;\n";
   new_rect += tfm::format("r1.geometry = new Rect(%f, %f, %f, %f);\n",
@@ -415,8 +433,8 @@ static void image_circle(double x, double y, double r, const pGEcontext gc, pDev
 
   Rcout << "// image_circle()" << std::endl;
   BEGIN_RCPP
-  //note: parameter 3 + 4 must denote any point on the circle
-  std::string new_circle = "cnvs = document.windows[0].selection.canvas;\nc1 = cnvs.newShape();\n";
+    //note: parameter 3 + 4 must denote any point on the circle
+    std::string new_circle = "cnvs = document.windows[0].selection.canvas;\nc1 = cnvs.newShape();\n";
   new_circle += "c1.shape = \"Circle\";\n";
   new_circle += "c1.shadowColor = null;\n";
   new_circle += tfm::format("c1.geometry = new Rect(%f, %f, %f, %f);\n",
@@ -436,7 +454,7 @@ static void image_path(double *x, double *y, int npoly, int *nper, Rboolean wind
                        const pGEcontext gc, pDevDesc dd) {
   Rcout << "// image_path()" << std::endl;
   BEGIN_RCPP
-  VOID_END_RCPP
+    VOID_END_RCPP
 }
 
 void image_mode(int mode, pDevDesc dd) {
@@ -446,9 +464,9 @@ void image_mode(int mode, pDevDesc dd) {
 SEXP image_capture(pDevDesc dd){
   Rcout << "// image_capture()" << std::endl;
   BEGIN_RCPP
-  return R_NilValue;
+    return R_NilValue;
   VOID_END_RCPP
-  return R_NilValue;
+    return R_NilValue;
 }
 
 
@@ -461,8 +479,19 @@ static void image_raster(unsigned int *raster, int w, int h,
 
   Rcout << "// image_raster()" << std::endl;
   BEGIN_RCPP
-  VOID_END_RCPP
+    VOID_END_RCPP
 
+}
+
+
+static void image_close(pDevDesc dd) {
+  Rcout << "// image_close()" << std::endl;
+  BEGIN_RCPP
+    // Reset clipping area, R doesn't do that
+    // if (dd->canClip) image_clip(dd->left, dd->right, dd->bottom, dd->top, dd);
+    // GraffleDevice *gd = (GraffleDevice *)dd->deviceSpecific;
+    // delete gd;
+    VOID_END_RCPP
 }
 
 static pDevDesc graffle_driver_new(GraffleDevice *device, int bg, int width, int height,
@@ -531,7 +560,7 @@ static pDevDesc graffle_driver_new(GraffleDevice *device, int bg, int width, int
 
   // Capabilities
   dd->canClip = (Rboolean)canclip;
-  dd->canHAdj = 0;
+  dd->canHAdj = 1;
   dd->canChangeGamma = FALSE;
   dd->displayListOn = FALSE;
   dd->haveLocator = FALSE;
