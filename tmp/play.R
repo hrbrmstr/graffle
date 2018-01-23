@@ -4,12 +4,19 @@ library(hrbrthemes)
 
 capture.output({
   to_graffle()
-  plot(cars, main = "Stopping Distance versus Speed")
-  lines(stats::lowess(cars))
+  plot(
+    cars, main = "Stopping Distance versus Speed",
+    col = "red", ced = 3
+  )
+  lines(stats::lowess(cars), col = "blue")
   invisible(dev.off())
-}) -> x
-cat(x, file="~/Desktop/a.js", sep="\n")
+}) -> dbg
 
+cat(dbg, file="~/Desktop/a.js", sep="\n")
+
+browseURL("omnigraffle:///omnijs-run?script=c1%20%3D%20cnvs%2EnewShape%28%29%3B%0Ac1%2Eshape%20%3D%20%22Circle%22%3B%0Ac1%2EshadowColor%20%3D%20null%3B%0Ac1%2Egeometry%20%3D%20new%20Rect%2882%2E663%2C%20506%2E544%2C%205%2E4%2C%205%2E4%29%3B%0Ac1%2EstrokeColor%20%3D%20Color%2ERGB%280%2E000000%2C%200%2E000000%2C%200%2E000000%2C%201%2E000000%29%3B%0Ac1%2EfillColor%20%3D%20Color%2ERGB%281%2E000000%2C%201%2E000000%2C%201%2E000000%2C%200%2E000000%29%3B%0A")
+cat(URLdecode("omnigraffle:///omnijs-run?script=c1%20%3D%20cnvs%2EnewShape%28%29%3B%0Ac1%2Eshape%20%3D%20%22Circle%22%3B%0Ac1%2EshadowColor%20%3D%20null%3B%0Ac1%2Egeometry%20%3D%20new%20Rect%2882%2E663%2C%20506%2E544%2C%205%2E4%2C%205%2E4%29%3B%0Ac1%2EstrokeColor%20%3D%20Color%2ERGB%280%2E000000%2C%200%2E000000%2C%200%2E000000%2C%201%2E000000%29%3B%0Ac1%2EfillColor%20%3D%20Color%2ERGB%281%2E000000%2C%201%2E000000%2C%201%2E000000%2C%200%2E000000%29%3B%0A"))
+browseURL("omnigraffle:///omnijs-run?script=Document%2EmakeNewAndShow%28function%28doc%29%7B%0A%09cnvs%20%3D%20doc%2Ewindows%5B0%5D%2Eselection%2Ecanvas%0A%09cnvs%2EcanvasSizingMode%20%3D%20CanvasSizingMode%2EFixed%0A%09cnvs%2Esize%20%3D%20new%20Size%28612%2C792%29%0A%09cnvs%2Ename%20%3D%20%22Letter%20to%20Sally%22%0A%7D%29")
 
 capture.output({
   to_graffle()

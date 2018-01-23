@@ -1,5 +1,6 @@
 #include <Rcpp.h>
 #include <gdtools.h>
+#include <unistd.h>
 #include <boost/shared_ptr.hpp>
 #include <R_ext/GraphicsEngine.h>
 
@@ -24,6 +25,33 @@ std::string d2s(double val){
   return oss.str();
 }
 
+std::string urlencode(const std::string &s) {
+  //RFC 3986 section 2.3 Unreserved Characters (January 2005)
+  const std::string unreserved = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+
+  std::string escaped = "";
+  for(size_t i=0; i<s.length(); i++) {
+    if (unreserved.find_first_of(s[i]) != std::string::npos) {
+      escaped.push_back(s[i]);
+    } else {
+      escaped.append("%");
+      char buf[3];
+      sprintf(buf, "%.2X", s[i]);
+      escaped.append(buf);
+    }
+  }
+  return(escaped);
+}
+
+void omnijs(std::string cmd="", double n=0.01) {
+  Rcpp::Environment base("package:utils");
+  Rcpp::Function browseURL = base["browseURL"];
+  cmd = tfm::format("omnigraffle:///omnijs-run?script=%s", urlencode(cmd));
+  Rcout << "// " << cmd << std::endl;
+  browseURL(cmd);
+  usleep((unsigned int)(n*1000000));
+}
+
 class GraffleDevice {
 
 public:
@@ -37,14 +65,32 @@ public:
     system_aliases(Rcpp::wrap(aliases_["system"])),
     user_aliases(Rcpp::wrap(aliases_["user"])),
     cc(gdtools::context_create()) {
+
+    omnijs("app.activate();\n", 5);
+
+    std::string document = tfm::format("Document.makeNewAndShow(function(doc) { \
+	    cnvs = doc.windows[0].selection.canvas; \
+	    cnvs.canvasSizingMode = CanvasSizingMode.Fixed; \
+	    cnvs.size = new Size(%d, %d); \
+	    cnvs.name = 'Rplot01'; \
+    });\n", i2s(height), i2s(width));
+    // std::string document = "Document.makeNewAndShow(function(doc) { \n";
+    // document += "  cnvs = doc.windows[0].selection.canvas;\n";
+    // document += "  cnvs.canvasSizingMode = CanvasSizingMode.Fixed;\n";
+    // document += tfm::format("  cnvs.size = new Size(%d,%d);\n", i2s(height), i2s(width));
+    // document += tfm::format("  cnvs.name = \"Rplot\";\n");
+    // document += "};\n";
+
+    omnijs(document, 5);
+
     std::string new_canvas = "cnvs = document.windows[0].selection.canvas;\n";
     new_canvas = new_canvas +
       tfm::format("cnvs.size = new Size(%d, %d);", i2s(height), i2s(width));
     Rcout << new_canvas << std::endl;
+
   }
 
 };
-
 
 inline bool is_black(int col) {
   return (R_RED(col) == 0) && (R_GREEN(col) == 0) && (R_BLUE(col) == 0) &&
@@ -230,7 +276,7 @@ static void image_line(double x1, double y1, double x2, double y2, const pGEcont
   double lwd = gc->lwd * xlwd * multiplier;
   GraffleDevice *gd = (GraffleDevice *)dd->deviceSpecific;
   std::string new_line = tfm::format(
-    "l1 = cnvs.addLine(%s, %s);\n",
+    "cnvs = document.windows[0].selection.canvas;\nl1 = cnvs.addLine(%s, %s);\n",
     tfm::format("new Point(%f, %f)", d2s(x1), d2s(y1)),
     tfm::format("new Point(%f, %f)", d2s(x2), d2s(y2))
   );
@@ -240,6 +286,7 @@ static void image_line(double x1, double y1, double x2, double y2, const pGEcont
                           R_RED(gc->col)/255.0, R_GREEN(gc->col)/255.0, R_BLUE(gc->col)/255.0,
                           R_ALPHA(gc->col)/255.0);
   Rcout << new_line << std::endl;
+  omnijs(new_line);
   VOID_END_RCPP
 
 }
@@ -251,7 +298,7 @@ static void image_polyline(int n, double *x, double *y, const pGEcontext gc, pDe
   double multiplier = 1/dd->ipr[0]/72;
   double lwd = gc->lwd * xlwd * multiplier;
 
-  std::string new_line = "l1 = cnvs.newLine();\n";
+  std::string new_line = "cnvs = document.windows[0].selection.canvas;\nl1 = cnvs.newLine();\n";
   new_line = new_line + "l1.points = [\n  ";
   for (int i=0; i<n; i++) {
     new_line = new_line + tfm::format("new Point(%f, %f)", d2s(x[i]), d2s(y[i]));
@@ -264,6 +311,7 @@ static void image_polyline(int n, double *x, double *y, const pGEcontext gc, pDe
                           R_RED(gc->col)/255.0, R_GREEN(gc->col)/255.0, R_BLUE(gc->col)/255.0,
                           R_ALPHA(gc->col)/255.0);
   Rcout << new_line << std::endl;
+  omnijs(new_line);
   VOID_END_RCPP
 
 }
@@ -275,7 +323,7 @@ static void image_polygon(int n, double *x, double *y, const pGEcontext gc, pDev
   double multiplier = 1/dd->ipr[0]/72;
   double lwd = gc->lwd * xlwd * multiplier;
 
-  std::string new_gon = "g1 = cnvs.newShape();\n";
+  std::string new_gon = "cnvs = document.windows[0].selection.canvas;\ng1 = cnvs.newShape();\n";
   double minx = x[0], maxx = x[0];
   double miny = y[0], maxy = y[0];
 
@@ -304,6 +352,7 @@ static void image_polygon(int n, double *x, double *y, const pGEcontext gc, pDev
                           R_ALPHA(gc->fill)/255.0);
 
   Rcout << new_gon << std::endl;
+  omnijs(new_gon);
   VOID_END_RCPP
 }
 
@@ -324,7 +373,7 @@ void image_text(double x, double y, const char *str, double rot, double hadj,
   double ps = gc->ps * gc->cex * multiplier;
 
   GraffleDevice *gd = (GraffleDevice *)dd->deviceSpecific;
-  std::string new_text = "t1 = ";
+  std::string new_text = "cnvs = document.windows[0].selection.canvas;\nt1 = ";
   new_text = new_text + "cnvs.addText(\"" + std::string(str) + "\", " +
     "new Point(" + d2s(x) + "," + d2s(y) + ")" + ");\n";
   new_text = new_text + "t1.shadowColor = null;\n";
@@ -338,6 +387,7 @@ void image_text(double x, double y, const char *str, double rot, double hadj,
                           R_RED(gc->fill)/255.0, R_GREEN(gc->fill)/255.0, R_BLUE(gc->fill)/255.0,
                           R_ALPHA(gc->fill)/255.0);
   Rcout << new_text << std::endl;
+  omnijs(new_text);
   VOID_END_RCPP
 }
 
@@ -357,6 +407,7 @@ static void image_rect(double x0, double y0, double x1, double y1,
                           R_RED(gc->fill)/255.0, R_GREEN(gc->fill)/255.0, R_BLUE(gc->fill)/255.0,
                           R_ALPHA(gc->fill)/255.0);
   Rcout << new_rect << std::endl;
+  omnijs(new_rect);
   VOID_END_RCPP
 }
 
@@ -365,7 +416,7 @@ static void image_circle(double x, double y, double r, const pGEcontext gc, pDev
   Rcout << "// image_circle()" << std::endl;
   BEGIN_RCPP
   //note: parameter 3 + 4 must denote any point on the circle
-  std::string new_circle = "c1 = cnvs.newShape();\n";
+  std::string new_circle = "cnvs = document.windows[0].selection.canvas;\nc1 = cnvs.newShape();\n";
   new_circle += "c1.shape = \"Circle\";\n";
   new_circle += "c1.shadowColor = null;\n";
   new_circle += tfm::format("c1.geometry = new Rect(%f, %f, %f, %f);\n",
@@ -377,6 +428,7 @@ static void image_circle(double x, double y, double r, const pGEcontext gc, pDev
                             R_RED(gc->fill)/255.0, R_GREEN(gc->fill)/255.0, R_BLUE(gc->fill)/255.0,
                             R_ALPHA(gc->fill)/255.0);
   Rcout << new_circle << std::endl;
+  omnijs(new_circle);
   VOID_END_RCPP
 }
 
