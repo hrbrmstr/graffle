@@ -1,11 +1,10 @@
+^CODE_OF_CONDUCT\.md$
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^\.travis\.yml$
-^README\.*Rmd$
-^README\.*html$
-^NOTES\.*Rmd$
-^NOTES\.*html$
+^README.*$
+^NOTES.*$
 ^\.codecov\.yml$
 ^README_files$
-^doc$
+^docs$
 ^tmp$

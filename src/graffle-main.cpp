@@ -47,7 +47,7 @@ void omnijs(std::string cmd="", double n=0.10) {
   Rcpp::Environment base("package:utils");
   Rcpp::Function browseURL = base["browseURL"];
   cmd = tfm::format("omnigraffle:///omnijs-run?script=%s", urlencode(cmd));
-  Rcout << "// " << cmd << std::endl;
+  // Rcout << "// " << cmd << std::endl;
   browseURL(cmd);
   usleep((unsigned int)(n*1000000));
 }
@@ -88,7 +88,7 @@ public:
     std::string new_canvas = "cnvs = document.windows[0].selection.canvas;\n";
     new_canvas = new_canvas +
       tfm::format("cnvs.size = new Size(%d, %d);", i2s(height), i2s(width));
-    Rcout << new_canvas << std::endl;
+    // Rcout << new_canvas << std::endl;
 
   }
 
@@ -190,7 +190,7 @@ inline std::string fontfile(const char* family_, int face,
 
 double image_strwidth(const char *str, pGEcontext gc, pDevDesc dd) {
 
-  Rcout << "// image_strwidth()" << std::endl;
+  // Rcout << "// image_strwidth()" << std::endl;
   BEGIN_RCPP
     GraffleDevice *gd = (GraffleDevice *)dd->deviceSpecific;
 
@@ -208,7 +208,7 @@ double image_strwidth(const char *str, pGEcontext gc, pDevDesc dd) {
 void image_metric_info(int c, pGEcontext gc, double* ascent, double* descent,
                        double* width, pDevDesc dd) {
 
-  Rcout << "// image_metric_info()" << std::endl;
+  // Rcout << "// image_metric_info()" << std::endl;
   BEGIN_RCPP
     GraffleDevice *gd = (GraffleDevice *)dd->deviceSpecific;
 
@@ -240,14 +240,14 @@ void image_metric_info(int c, pGEcontext gc, double* ascent, double* descent,
 }
 
 static void image_clip(double left, double right, double bottom, double top, pDevDesc dd) {
-  Rcout << "// image_clip() / " << left << ", " << right << ", " << bottom << ", " << top << std::endl;
+  // Rcout << "// image_clip() / " << left << ", " << right << ", " << bottom << ", " << top << std::endl;
   BEGIN_RCPP
     VOID_END_RCPP
 }
 
 static void image_size(double *left, double *right, double *bottom, double *top, pDevDesc dd) {
 
-  Rcout << "// image_size()" << std::endl;
+  // Rcout << "// image_size()" << std::endl;
   *left = dd->left;
   *right = dd->right;
   *bottom = dd->bottom;
@@ -257,7 +257,7 @@ static void image_size(double *left, double *right, double *bottom, double *top,
 
 static void image_new_page(const pGEcontext gc, pDevDesc dd) {
 
-  Rcout << "// image_new_page()" << std::endl;
+  // Rcout << "// image_new_page()" << std::endl;
   BEGIN_RCPP
     VOID_END_RCPP
 
@@ -265,7 +265,7 @@ static void image_new_page(const pGEcontext gc, pDevDesc dd) {
 
 static void image_line(double x1, double y1, double x2, double y2, const pGEcontext gc, pDevDesc dd) {
 
-  Rcout << "// image_line()" << std::endl;
+  // Rcout << "// image_line()" << std::endl;
   BEGIN_RCPP
     double multiplier = 1/dd->ipr[0]/72;
   double lwd = gc->lwd * xlwd * multiplier;
@@ -280,7 +280,7 @@ static void image_line(double x1, double y1, double x2, double y2, const pGEcont
   new_line += tfm::format("l1.strokeColor = Color.RGB(%f, %f, %f, %f);",
                           R_RED(gc->col)/255.0, R_GREEN(gc->col)/255.0,
                           R_BLUE(gc->col)/255.0, R_ALPHA(gc->col)/255.0);
-  Rcout << new_line << std::endl;
+  // Rcout << new_line << std::endl;
   omnijs(new_line);
   VOID_END_RCPP
 
@@ -288,7 +288,7 @@ static void image_line(double x1, double y1, double x2, double y2, const pGEcont
 
 static void image_polyline(int n, double *x, double *y, const pGEcontext gc, pDevDesc dd) {
 
-  Rcout << "// image_polyline()" << std::endl;
+  // Rcout << "// image_polyline()" << std::endl;
   BEGIN_RCPP
     double multiplier = 1/dd->ipr[0]/72;
   double lwd = gc->lwd * xlwd * multiplier;
@@ -305,7 +305,7 @@ static void image_polyline(int n, double *x, double *y, const pGEcontext gc, pDe
   new_line += tfm::format("l1.strokeColor = Color.RGB(%f, %f, %f, %f);",
                           R_RED(gc->col)/255.0, R_GREEN(gc->col)/255.0,
                           R_BLUE(gc->col)/255.0, R_ALPHA(gc->col)/255.0);
-  Rcout << new_line << std::endl;
+  // Rcout << new_line << std::endl;
   omnijs(new_line);
   VOID_END_RCPP
 
@@ -313,7 +313,7 @@ static void image_polyline(int n, double *x, double *y, const pGEcontext gc, pDe
 
 static void image_polygon(int n, double *x, double *y, const pGEcontext gc, pDevDesc dd) {
 
-  Rcout << "// image_polygon()" << std::endl;
+  // Rcout << "// image_polygon()" << std::endl;
   BEGIN_RCPP
     double multiplier = 1/dd->ipr[0]/72;
   double lwd = gc->lwd * xlwd * multiplier;
@@ -350,7 +350,7 @@ static void image_polygon(int n, double *x, double *y, const pGEcontext gc, pDev
                          R_RED(gc->fill)/255.0, R_GREEN(gc->fill)/255.0,
                          R_BLUE(gc->fill)/255.0, R_ALPHA(gc->fill)/255.0);
 
-  Rcout << new_gon << std::endl;
+  // Rcout << new_gon << std::endl;
   omnijs(new_gon);
   VOID_END_RCPP
 }
@@ -365,7 +365,7 @@ static inline std::string fontname(const pGEcontext gc){
 
 void image_text(double x, double y, const char *str, double rot, double hadj,
                 pGEcontext gc, pDevDesc dd) {
-  Rcout << "// image_text() / " << x << ", " << y << ", " << image_strwidth(str, gc, dd) << std::endl;
+  // Rcout << "// image_text() / " << x << ", " << y << ", " << image_strwidth(str, gc, dd) << std::endl;
   BEGIN_RCPP
     double multiplier = 1/dd->ipr[0]/72;
   double deg = fmod(-rot + 360.0, 360.0);
@@ -382,7 +382,7 @@ void image_text(double x, double y, const char *str, double rot, double hadj,
   new_text += "t1.autosizing = TextAutosizing.Vertical;\n";
   new_text += "t1.textSize = " + d2s(ps) + ";\n";
 
-  Rcout << "// hadj == " << hadj << std::endl;
+  // Rcout << "// hadj == " << hadj << std::endl;
   if (hadj == 0) new_text += "t1.textHorizontalAlignment = HorizontalTextAlignment.Left;\n";
   if (hadj == 0.5) new_text += "t1.textHorizontalAlignment = HorizontalTextAlignment.Center;\n";
   if (hadj == 1) new_text += "t1.textHorizontalAlignment = HorizontalTextAlignment.Right;\n";
@@ -404,14 +404,14 @@ void image_text(double x, double y, const char *str, double rot, double hadj,
     new_text += tfm::format("aRect.origin = new Point(%f, %f);\n", d2s(x), d2s(y));
     new_text += "t1.geometry = aRect;\n";
   }
-  Rcout << new_text << std::endl;
+  // Rcout << new_text << std::endl;
   omnijs(new_text);
   VOID_END_RCPP
 }
 
 static void image_rect(double x0, double y0, double x1, double y1,
                        const pGEcontext gc, pDevDesc dd) {
-  Rcout << "// image_rect()" << std::endl;
+  // Rcout << "// image_rect()" << std::endl;
   BEGIN_RCPP
     std::string new_rect = "r1 = cnvs.newShape();\n";
   new_rect += "r1.shape = \"Rectangle\";\n";
@@ -424,14 +424,14 @@ static void image_rect(double x0, double y0, double x1, double y1,
   new_rect += tfm::format("r1.fillColor = Color.RGB(%f, %f, %f, %f);\n",
                           R_RED(gc->fill)/255.0, R_GREEN(gc->fill)/255.0, R_BLUE(gc->fill)/255.0,
                           R_ALPHA(gc->fill)/255.0);
-  Rcout << new_rect << std::endl;
+  // Rcout << new_rect << std::endl;
   omnijs(new_rect);
   VOID_END_RCPP
 }
 
 static void image_circle(double x, double y, double r, const pGEcontext gc, pDevDesc dd) {
 
-  Rcout << "// image_circle()" << std::endl;
+  // Rcout << "// image_circle()" << std::endl;
   BEGIN_RCPP
     //note: parameter 3 + 4 must denote any point on the circle
     std::string new_circle = "cnvs = document.windows[0].selection.canvas;\nc1 = cnvs.newShape();\n";
@@ -445,24 +445,24 @@ static void image_circle(double x, double y, double r, const pGEcontext gc, pDev
   new_circle += tfm::format("c1.fillColor = Color.RGB(%f, %f, %f, %f);\n",
                             R_RED(gc->fill)/255.0, R_GREEN(gc->fill)/255.0, R_BLUE(gc->fill)/255.0,
                             R_ALPHA(gc->fill)/255.0);
-  Rcout << new_circle << std::endl;
+  // Rcout << new_circle << std::endl;
   omnijs(new_circle);
   VOID_END_RCPP
 }
 
 static void image_path(double *x, double *y, int npoly, int *nper, Rboolean winding,
                        const pGEcontext gc, pDevDesc dd) {
-  Rcout << "// image_path()" << std::endl;
+  // Rcout << "// image_path()" << std::endl;
   BEGIN_RCPP
     VOID_END_RCPP
 }
 
 void image_mode(int mode, pDevDesc dd) {
-  Rcout << "// image_mode()" << std::endl;
+  // Rcout << "// image_mode()" << std::endl;
 }
 
 SEXP image_capture(pDevDesc dd){
-  Rcout << "// image_capture()" << std::endl;
+  // Rcout << "// image_capture()" << std::endl;
   BEGIN_RCPP
     return R_NilValue;
   VOID_END_RCPP
@@ -477,7 +477,7 @@ static void image_raster(unsigned int *raster, int w, int h,
                          Rboolean interpolate,
                          const pGEcontext gc, pDevDesc dd) {
 
-  Rcout << "// image_raster()" << std::endl;
+  // Rcout << "// image_raster()" << std::endl;
   BEGIN_RCPP
     VOID_END_RCPP
 
@@ -485,7 +485,7 @@ static void image_raster(unsigned int *raster, int w, int h,
 
 
 static void image_close(pDevDesc dd) {
-  Rcout << "// image_close()" << std::endl;
+  // Rcout << "// image_close()" << std::endl;
   BEGIN_RCPP
     // Reset clipping area, R doesn't do that
     // if (dd->canClip) image_clip(dd->left, dd->right, dd->bottom, dd->top, dd);
